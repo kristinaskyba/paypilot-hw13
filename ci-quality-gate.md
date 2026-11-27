@@ -56,18 +56,20 @@ env:
 
 | Field | Local run | CI run | Match? |
 | --- | --- | --- | --- |
-| Record file | `reports/run-<…>.json` | artifact `eval-report` | — |
-| `prompt_version` | | | must match |
-| `set_hash` | | | must match |
-| `profile` | | | must match |
-| `judge_model` | `not-used` | `not-used` | must match |
-| `rubric_version` | `rubric.v1` | `rubric.v1` | must match |
-| `elapsed` | | | may differ |
-| passed / failed | | | match if `set_hash` is the same |
+| Record file | `reports/run-20261127T170133Z.json` | artifact `eval-report` (`run-20261127T165516Z.json`), [run 46036136000](https://github.com/kristinaskyba/paypilot-hw13/actions/runs/46036136000) | — |
+| `prompt_version` | base.v1 | base.v1 | yes |
+| `set_hash` | 473130ffc685 | 473130ffc685 | yes |
+| `profile` | clean | clean | yes |
+| `judge_model` | `not-used` | `not-used` | yes |
+| `rubric_version` | `rubric.v1` | `rubric.v1` | yes |
+| `elapsed` | 130.7 s | 113.9 s | differs (allowed) |
+| passed / failed | 35 / 1 (DIS-002-N), exit 1 | 36 / 0, exit 0 | no — one case |
 
-**Which field differed and why (one sentence):**
+Also the same in both: 36 calls, unit tests 6 manual + 27 generated (my hw11 tests), cost ~$0.015.
 
-**If `set_hash` and `prompt_version` match but the result does not — what I found in the environment:**
+**Which field differed and why (one sentence):** Only `elapsed` (allowed); the five version fields match, so it is the same run.
+
+**If `set_hash` and `prompt_version` match but the result does not — what I found:** The difference is not the environment. DIS-002-N failed locally on the pattern `is eligible`, but the agent's answer was correct: it refused the dispute ("the 60-day window … closed") and then said "the transaction status is eligible". The check matched that unrelated phrase. This is a false alarm of the check, and it depends on the model's wording in each run (runs: 1). It goes into the Gate Policy as a known weakness.
 
 ---
 

@@ -29,13 +29,13 @@
 
 | Check | Link / evidence | Result |
 | --- | --- | --- |
-| Smoke: `docker compose run --rm eval --dry-run` on PR is green | | yes / no |
-| What `--dry-run` printed (cases / calls) | | — |
-| Provider secret (`ANTHROPIC_API_KEY`) added to the repository | — | yes / no |
-| Full daily run `SET=l03 GATE=daily` green, exit code 0 | | yes / no |
-| No `continue-on-error` and no `\|\| true` on the eval step | | yes / no |
-| No cases with `runs: 5` or `assertion: judge` in the daily job | | yes / no |
-| PR `ci/eval-gate` merged into `main` before step 4 | | yes / no |
+| Smoke: `docker compose run --rm eval --dry-run` on PR is green | [run 46036136000, attempt 1](https://github.com/kristinaskyba/paypilot-hw13/actions/runs/46036136000), PR [#1](https://github.com/kristinaskyba/paypilot-hw13/pull/1) | yes |
+| What `--dry-run` printed (cases / calls) | 36 cases `l03` (36 daily, 0 release), 36 agent calls, 0 judge; unit tests 6 manual + 27 generated; "nothing called" | — |
+| Provider secret (`ANTHROPIC_API_KEY`) added to the repository | — | yes |
+| Full daily run `SET=l03 GATE=daily` green, exit code 0 | [run 46036136000, attempt 3](https://github.com/kristinaskyba/paypilot-hw13/actions/runs/46036136000): 36/36, exit 0 | yes |
+| No `continue-on-error` and no `\|\| true` on the eval step | `run: docker compose run --rm -e SET -e GATE -e PROFILE -e DEFECTS eval` | yes |
+| No cases with `runs: 5` or `assertion: judge` in the daily job | `--dry-run`: 0 release cases, 0 judge calls | yes |
+| PR `ci/eval-gate` merged into `main` before step 4 | [PR #1](https://github.com/kristinaskyba/paypilot-hw13/pull/1) | yes |
 
 **`env` block of the daily job:**
 
@@ -46,7 +46,7 @@ env:
   DEFECTS: ""
 ```
 
-**If the job was red without red cases — what was fixed:**
+**If the job was red without red cases — what was fixed:** Two environment reds before the first green run. (1) No secret yet: the stand used the mock model, 15 text cases failed. (2) The secret had a line break at the end: `anthropic api reachable [FAIL] Illegal header value b'***\n'`. I saved the secret again without the line break. I fixed the environment; I did not change the set or the thresholds.
 
 ---
 
@@ -80,24 +80,23 @@ Also the same in both: 36 calls, unit tests 6 manual + 27 generated (my hw11 tes
 | Field | Value |
 | --- | --- |
 | Account and repository visibility | Free · public |
-| Branch protection on `main`: check `eval-gate / daily` required | yes / no |
-| "Do not allow bypassing the above settings" enabled | yes / no |
-| PR branch created from `main` (after merging `ci/eval-gate`) | yes / no |
+| Branch protection on `main`: check `eval-gate / daily` required | yes (classic rule, required check `daily`) |
+| "Do not allow bypassing the above settings" enabled | yes |
+| PR branch created from `main` (after merging `ci/eval-gate`) | yes (`test/d19`) |
 | Where `DEFECTS: "D19"` was added | `env` block of the `daily` job in `.github/workflows/eval-gate.yml` |
-| PR (link, status "closed, not merged") | |
-| "Merge" button unavailable (PR blocked) | yes / no |
-| Report artifact of the red run | `eval-report` (link to run) |
-| The `DEFECTS: D19` line did not reach `main` | yes / no |
+| PR (link, status "closed, not merged") | [PR #2](https://github.com/kristinaskyba/paypilot-hw13/pull/2) — closed, not merged |
+| "Merge" button unavailable (PR blocked) | yes — `eval-gate / daily` Required, Failing |
+| Report artifact of the red run | `eval-report` ([run 46040318245](https://github.com/kristinaskyba/paypilot-hw13/actions/runs/46040318245)): profile `clean+D19`, 34/36, exit 1 |
+| The `DEFECTS: D19` line did not reach `main` | yes |
 
-**Red case from the report:**
+**Red cases from the report:**
 
 | Case ID | Condition | `expected` / `got` | Oracle, level, `gate` |
 | --- | --- | --- | --- |
-| | | / | |
+| `DIS-006` (`TX-0402`, `CUS-0004`) | duplicate charge on day 63, window 60 days (D19 makes it 90) | `eligible=False` / `eligible=True` | `engine:disputes`, 1, `daily` |
+| `DIS-002-N` (`TX-0402`) | same transaction, the agent's answer to the customer | must not offer a dispute / "you can still dispute" | `engine` (pattern), 4, `daily` |
 
-**Why unit tests are green but the gate is red (one sentence):**
-
-**If the D19 PR is green:** the set has no case for this regression; write it in "What the gate does not catch" (Part B) and add a level-1 case to `sets/l03.jsonl`.
+**Why unit tests are green but the gate is red (one sentence):** The unit tests (6 + 27 passed) check the code's functions one by one, while the gate runs the agent end to end against the dispute engine's answer, and only that shows the tool saying "eligible" for a 63-day-old transaction.
 
 ---
 

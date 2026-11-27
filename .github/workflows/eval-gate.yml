@@ -38,6 +38,7 @@ jobs:
 
       - name: Bootstrap PayPilot stand
         env:
+          L11_REPO: https://github.com/kristinaskyba/paypilot-hw11.git
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -66,13 +67,14 @@ jobs:
       GATE: release
       PROFILE: clean
       JUDGE_BACKEND: ollama
-      JUDGE_MODEL: qwen2.5:7b
+      JUDGE_MODEL: qwen3:8b
       OLLAMA_URL: http://host.docker.internal:11434
     steps:
       - uses: actions/checkout@v4
 
       - name: Bootstrap PayPilot stand
         env:
+          L11_REPO: https://github.com/kristinaskyba/paypilot-hw11.git
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

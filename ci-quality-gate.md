@@ -104,25 +104,33 @@ Also the same in both: 36 calls, unit tests 6 manual + 27 generated (my hw11 tes
 
 *Lab: step 5 (release layer) · HW: stage 3 · Criteria 3 "Two layers by the `gate` field" and 6 "Judge perimeter".*
 
-**How it runs:** local run inside the perimeter (Ollama) + CI `workflow_dispatch` with `deploy: skipped`
+**How it runs:** local run inside the perimeter (Ollama on my Mac) + CI `workflow_dispatch` with `deploy: skipped`
 
 | Field | Value |
 | --- | --- |
-| How the release job is triggered | `workflow_dispatch` (`layer: release`) and `push` to branch `release` |
-| Where `release` runs | locally inside the perimeter (Ollama) + CI `eval-gate / release` → `deploy: skipped` |
-| Command | `docker compose run --rm -e SET=l03 -e GATE=release -e JUDGE_BACKEND=ollama -e JUDGE_MODEL=qwen3:8b eval` |
-| CI run (link, `deploy: skipped` when RED) | |
+| How the release job is triggered | `workflow_dispatch` (`layer: release`) and `push` to branch `release`; never `pull_request` |
+| Where `release` runs | locally inside the perimeter (Ollama `qwen3:8b`) + CI `eval-gate / release` → `deploy: skipped` |
+| Command | `docker compose run --rm -e SET=l03 -e GATE=release -e JUDGE_BACKEND=ollama -e JUDGE_MODEL=qwen3:8b -e REPEAT=1 eval` |
+| CI run (link, `deploy: skipped` when RED) | [run 46043073268](https://github.com/kristinaskyba/paypilot-hw13/actions/runs/46043073268): `release` failed (exit 1, no Ollama on the GitHub runner: 5 judge cases "ollama unreachable"), `deploy` skipped, `daily` skipped |
 | `judge_model` in the release report | `qwen3:8b` (local tag) |
-| Release job does not run on PRs | yes / no |
-| No cloud-judge secrets in the `release` job | yes / no |
+| Release job does not run on PRs | yes — every PR run shows `release: skipped` (PR #1, #2, #3) |
+| No cloud-judge secrets in the `release` job | yes — `JUDGE_BACKEND: ollama`, no judge key; the only secret is the agent's key for the stand |
 
 **Local release run report:**
 
 | Field | Value |
 | --- | --- |
-| Where the run was done | my own machine inside the perimeter (Ollama `qwen3:8b`) |
-| Report (`reports/release/run-<…>.json`) | |
-| `set_hash` / `prompt_version` / `judge_model` in the report | / / `qwen3:8b` |
+| Where the run was done | my own Mac inside the perimeter (Ollama `qwen3:8b`, Apple M4 Pro) |
+| Report | `reports/release/run-20261127T173348Z.json` |
+| `set_hash` / `prompt_version` / `judge_model` | 98ca5238d7c8 / base.v1 / `qwen3:8b` |
+| Result | 5/7 passed, 2 failed, exit 1; 88 s; agent $0.0051, judge $0 |
+| Note | `REPEAT=1` (each release case once, not `runs: 5`) to keep the run short; a full release run is ~15–20 min |
+
+**What the release layer found:**
+- HUM-001: the judge failed the answer. The agent asked for the dispute reason instead of refusing the dispute.
+- ORD-001: expected only `check_limits`, but the agent also called `get_account`. In an earlier CI run (#5, cancelled) it also called `quote_fx`, so the extra calls change from run to run.
+
+The set_hash here (98ca5238d7c8) is different from daily (473130ffc685), because the hash covers only the cases in the chosen layer (7 release cases vs 36 daily).
 
 ---
 

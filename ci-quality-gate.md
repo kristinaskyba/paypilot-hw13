@@ -235,7 +235,7 @@ v1 — first version, accepted 2026-11-27 (no earlier version)
 
 | Date | Layer and case | Reason | Who · until when | Build report · issue |
 | --- | --- | --- | --- | --- |
-| — | no bypasses so far | | | |
+| 2026-11-27 | daily · DIS-002-N | 2nd false alarm: correct refusal, pattern matched "status is eligible"; docs-only PR; re-run instead of merging red | Kristina (QA for evals) · until the pattern is fixed | [run 46044191276](https://github.com/kristinaskyba/paypilot-hw13/actions/runs/46044191276) |
 
 ### Version history
 
